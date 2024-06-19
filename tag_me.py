@@ -1,14 +1,15 @@
-import cv2
-import argparse
-import os
-
-
 """
 Author: Rajesh Roy
 Email: rajeshroy402@gmail.com
-
+Description: This script allows you to open images from a specified folder,
+             draw circles on the images using the mouse, and rename the images.
+             You can navigate through the images using the 'n' and 'p' keys.
+             The image can be zoomed in or out using the '+' and '-' keys.
 """
 
+import cv2
+import argparse
+import os
 
 # Function to handle mouse events
 def draw_circle(event, x, y, flags, param):
@@ -36,11 +37,12 @@ def draw_circle(event, x, y, flags, param):
 
 # Function to redraw the image with all circles
 def redraw_image():
-    global edited_img
+    global edited_img, display_img
     edited_img = img.copy()
     for center, radius in circles:
         cv2.circle(edited_img, center, radius, (0, 255, 0), 2)
-    cv2.imshow(window_name, edited_img)
+    display_img = cv2.resize(edited_img, None, fx=zoom_scale, fy=zoom_scale)
+    cv2.imshow(window_name, display_img)
 
 # Function to rename the image
 def rename_image(file_path):
@@ -57,7 +59,7 @@ def rename_image(file_path):
 
 # Function to load the image at the given index
 def load_image(index):
-    global img, edited_img, circles, window_title
+    global img, edited_img, circles, window_title, display_img, zoom_scale
     img = cv2.imread(image_files[index])
     if img is None:
         print(f"Could not open or find the image: {image_files[index]}")
@@ -65,7 +67,9 @@ def load_image(index):
     edited_img = img.copy()
     circles = []
     window_title = f"Image - {os.path.basename(image_files[index])}"
-    cv2.imshow(window_name, edited_img)
+    zoom_scale = 1.0  # Reset zoom scale
+    display_img = img.copy()
+    cv2.imshow(window_name, display_img)
 
 # Parse command line arguments
 if __name__ == "__main__":
@@ -83,13 +87,15 @@ if __name__ == "__main__":
         exit()
 
     window_name = "Image Window"
-    cv2.namedWindow(window_name)
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
     # Initialize global variables
     center = None
     drawing = False
     edited_img = None
     circles = []
+    display_img = None
+    zoom_scale = 1.0
 
     current_index = 0
     load_image(current_index)
@@ -98,7 +104,7 @@ if __name__ == "__main__":
     cv2.setMouseCallback(window_name, draw_circle)
 
     while True:
-        cv2.imshow(window_name, edited_img)
+        cv2.imshow(window_name, display_img)
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord('c') or key == ord('C'):
@@ -117,6 +123,13 @@ if __name__ == "__main__":
             if current_index > 0:
                 current_index -= 1
                 load_image(current_index)
+        elif key == ord('+'):  # Zoom in
+            zoom_scale += 0.25  # Increase zoom scale by 25%
+            redraw_image()
+        elif key == ord('-'):  # Zoom out
+            zoom_scale -= 0.25  # Decrease zoom scale by 25%
+            zoom_scale = max(0.25, zoom_scale)  # Minimum zoom scale of 0.25
+            redraw_image()
         elif key == 27:  # Escape key to exit
             break
 
