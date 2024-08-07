@@ -42,7 +42,9 @@ def undo_dot():
     global red_count, green_count, yellow_count
     if dots:
         x, y, color = dots.pop()
-        cv2.circle(image, (x, y), 2, (255, 255, 255), -1)  # Draw white circle to remove dot
+        image[:] = cv2.imread(image_name)  # Redraw the original image
+        for dot in dots:
+            cv2.circle(image, (dot[0], dot[1]), 2, dot[2], -1)  # Redraw remaining dots
         if color == (0, 0, 255):
             red_count -= 1
         elif color == (0, 255, 0):

@@ -58,7 +58,7 @@ def main(csv_file_path):
             image_url = row['image']
             outlet_number = row['outlet']
             image_id = row['id']
-            created_at = row['created_at']
+            created_at = row['tat']
             
             # Create directory for the outlet with current time if it doesn't exist
             outlet_dir = os.path.join(images_dir, f"{outlet_number}_{current_time}")
